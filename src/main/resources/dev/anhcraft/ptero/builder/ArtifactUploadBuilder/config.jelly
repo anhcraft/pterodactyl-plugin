@@ -1,0 +1,15 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:entry title="${%ClientId}" field="clientId">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%ServerId}" field="serverId">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%SourceFile}" field="sourceFile">
+        <f:textbox />
+    </f:entry>
+    <f:entry title="${%TargetDirectory}" field="targetDirectory">
+        <f:textbox />
+    </f:entry>
+</j:jelly>
