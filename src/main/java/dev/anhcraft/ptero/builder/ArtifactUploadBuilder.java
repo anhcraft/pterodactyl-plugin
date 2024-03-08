@@ -1,7 +1,11 @@
 package dev.anhcraft.ptero.builder;
 
+import com.mattmalec.pterodactyl4j.client.entities.ClientServer;
+import com.mattmalec.pterodactyl4j.client.entities.Directory;
+import com.mattmalec.pterodactyl4j.client.managers.FileManager;
 import dev.anhcraft.ptero.model.PteroGlobalConfig;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import groovy.lang.Tuple2;
 import hudson.*;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
@@ -16,7 +20,10 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class ArtifactUploadBuilder extends Builder implements SimpleBuildStep {
@@ -82,20 +89,45 @@ public class ArtifactUploadBuilder extends Builder implements SimpleBuildStep {
     var clientConfig = clientConfigOptional.get();
     var client = clientConfig.createClient();
     var server = client.retrieveServerByIdentifier(serverId).execute();
-    var dir = server.retrieveDirectory(targetDirectory).execute();
-    var action = server.getFileManager().upload(dir);
     var source = workspace.child(sourceFile);
     if (!source.exists()) {
       LOGGER.warning("Source file does not exist: " + source.getRemote());
       return;
     }
-    LOGGER.info("Uploading " + source.getRemote() + " to " + dir.getPath());
+    LOGGER.info("Uploading " + source.getRemote() + " to " + targetDirectory);
     // TODO use FileCallable to upload directly from the agent
     if (source.isDirectory()) {
-      // TODO implement directory upload
-      return;
+      uploadDirectory(server, source, targetDirectory);
     } else {
+      var dir = server.retrieveDirectory(targetDirectory).execute();
+      var action = server.getFileManager().upload(dir);
       action.addFile(source.read(), source.getName()).execute();
+    }
+  }
+
+  private void uploadDirectory(ClientServer server, FilePath source, String targetPath) throws IOException, InterruptedException {
+    var targetDir = server.retrieveDirectory(targetPath).execute();
+    var fileToUpload = new ArrayList<FilePath>();
+    for (var child : source.list()) {
+      if (child.isDirectory()) {
+        var targetChildPath = targetPath + "/" + child.getName();
+        if (targetDir.getDirectoryByName(child.getName()).isPresent()) {
+          uploadDirectory(server, child, targetChildPath);
+        } else {
+          LOGGER.info("Creating directory " + targetChildPath);
+          targetDir.createFolder(child.getName()).execute();
+          uploadDirectory(server, child, targetChildPath);
+        }
+      } else {
+        fileToUpload.add(child);
+      }
+    }
+    if (!fileToUpload.isEmpty()) {
+      var action = server.getFileManager().upload(targetDir);
+      for (FilePath child : fileToUpload) {
+        action.addFile(child.read(), child.getName());
+      }
+      action.execute();
     }
   }
 

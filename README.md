@@ -25,10 +25,12 @@ To configure the token store:
 ### Upload artifact
 For example, you have set up a job to clone a Git repo and use Maven to build the project. To upload the compiled file to a Pterodactyl server, go to the job configuration, add a new step "Upload artifact to Pterodactyl":
 - ClientId: Refer to the ID of client configuration
-- ServerId: The server ID
-- SourceFile: The path of the file to uploaded
+- ServerId: The Pterodactyl server ID
+- SourceFile: The path to the file/directory to be uploaded
   + The root is the job's workspace under `workspace/<job name>/`
 - TargetDirectory: The path to the target directory
+  + The directory must exist on the Pterodactyl server
+  + When uploading a directory, subdirectories are automatically created. However, the root must exist.
 
 ![Upload Artifact](./demo/upload-artifact.png)
 
