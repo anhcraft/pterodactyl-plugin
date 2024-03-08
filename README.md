@@ -30,10 +30,7 @@ For example, you have set up a job to clone a Git repo and use Maven to build th
   + The root is the job's workspace under `workspace/<job name>/`
 - TargetDirectory: The path to the target directory
 
-**Example:**
-```
-clientId: test_server
-serverId: 08cb1d5d-0905-458b-95d8-6b7cf45557ca
-sourceFile: target/MyPlugin-1.0.8.jar
-targetDirectory: plugins
-```
+![Upload Artifact](./demo/upload-artifact.png)
+
+### Logging
+Go to Manage Jenkins > System Log.
